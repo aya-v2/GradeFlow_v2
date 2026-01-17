@@ -1,0 +1,109 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Gestion des Classes{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Gestion des Classes</h1>
+                    {% if currentYear %}
+                        <p class="text-sm text-gray-600 mt-2">Année scolaire : <strong>{{ currentYear.name }}</strong></p>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-4">
+                    <form method="get" class="flex items-center gap-2">
+                        <select name="filiere" onchange="this.form.submit()" class="block w-64 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm py-2.5">
+                            <option value="">Toutes les filières</option>
+                            {% for f in allFilieres %}
+                                <option value="{{ f.id }}" {{ currentFiliereId == f.id ? 'selected' : '' }}>{{ f.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+
+                    <a href="{{ path('app_admin_classe_new') }}" class="inline-flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold shadow-sm">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Nouvelle Classe
+                    </a>
+                </div>
+            </div>
+
+            {% if filieres is empty %}
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl px-6 py-8 text-center">
+                    <p class="text-amber-800 font-medium">Aucune filière disponible</p>
+                    <p class="text-amber-700 text-sm mt-1">Créez d'abord une filière avant de créer une classe</p>
+                    <a href="{{ path('app_admin_filieres') }}" class="inline-block mt-4 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition font-medium text-sm">
+                        Gérer les Filières
+                    </a>
+                </div>
+            {% else %}
+                {% for filiere in filieres %}
+                    <div class="mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">{{ filiere.name }}</h2>
+                        
+                        {% if classesByFiliere[filiere.id] is empty %}
+                            <div class="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-8 text-center">
+                                <p class="text-slate-600">Aucune classe pour cette filière</p>
+                            </div>
+                        {% else %}
+                            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-slate-50 border-b border-slate-100">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Nom</th>
+                                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Niveau</th>
+                                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Année</th>
+                                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Étudiants</th>
+                                                <th class="px-6 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wide">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-slate-100">
+                                            {% for classe in classesByFiliere[filiere.id] %}
+                                            <tr class="hover:bg-slate-50 transition">
+                                                <td class="px-6 py-4 text-gray-900 font-medium">{{ classe.name }}</td>
+                                                <td class="px-6 py-4">
+                                                    <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-bold">
+                                                        {{ classe.level }}A
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 text-gray-700">{{ classe.schoolYear.name }}</td>
+                                                <td class="px-6 py-4 text-gray-700">{{ classe.students | length }}</td>
+                                                <td class="px-6 py-4 text-center">
+                                                    <div class="flex items-center justify-center gap-2">
+                                                        <a href="{{ path('app_admin_classe_show', { id: classe.id }) }}" class="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition" title="Voir les étudiants">
+                                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                        </a>
+                                                        <a href="{{ path('app_admin_classe_edit', { id: classe.id }) }}" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Éditer">
+                                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                        </a>
+                                                        <form method="post" action="{{ path('app_admin_classe_delete', { id: classe.id }) }}" class="inline-block" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                                            <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </main>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

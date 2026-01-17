@@ -1,0 +1,174 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Profil Utilisateur - {{ user.firstName }} {{ user.lastName }}{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <a href="{{ path('app_admin_users') }}" class="text-sm text-slate-500 hover:text-indigo-600 mb-2 inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Retour aux utilisateurs
+                    </a>
+                    <h1 class="text-3xl font-bold text-gray-900">Profil Utilisateur</h1>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{{ path('app_admin_user_edit', {id: user.id}) }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition">
+                        Modifier
+                    </a>
+                    {% if 'ROLE_STUDENT' in user.roles %}
+                        <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition flex items-center gap-2 print:hidden">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Imprimer
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Profile Info Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+                <div class="p-8">
+                    <div class="flex items-start gap-6">
+                        <div class="h-20 w-20 bg-indigo-100 rounded-full flex items-center justify-center text-2xl font-bold text-indigo-600">
+                            {{ user.firstName|first }}{{ user.lastName|first }}
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-1">
+                                <h2 class="text-2xl font-bold text-gray-900">{{ user.lastName }} {{ user.firstName }}</h2>
+                                {% if 'ROLE_ADMIN' in user.roles %}
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 uppercase tracking-wider">Administrateur</span>
+                                {% elseif 'ROLE_TEACHER' in user.roles %}
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 uppercase tracking-wider">Enseignant</span>
+                                {% elseif 'ROLE_STUDENT' in user.roles %}
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 uppercase tracking-wider">Étudiant</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-gray-500 mb-6">{{ user.email }}</div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-6">
+                                <div>
+                                    <div class="text-xs font-bold text-gray-400 uppercase mb-1">CIN</div>
+                                    <div class="font-medium text-gray-900">{{ user.cin|default('-') }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-bold text-gray-400 uppercase mb-1">Date de Naissance</div>
+                                    <div class="font-medium text-gray-900">{{ user.birthDate ? user.birthDate|date('d/m/Y') : '-' }}</div>
+                                </div>
+                                {% if 'ROLE_STUDENT' in user.roles %}
+                                    <div>
+                                        <div class="text-xs font-bold text-gray-400 uppercase mb-1">Classe Actuelle</div>
+                                        <div class="font-medium text-gray-900">
+                                            {% if user.classe %}
+                                                {{ user.classe.name }} <span class="text-slate-400 text-xs">({{ user.classe.filiere.code }})</span>
+                                            {% else %}
+                                                <span class="text-red-500">Non affecté</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs font-bold text-gray-400 uppercase mb-1">CNE</div>
+                                        <div class="font-medium text-gray-900">{{ user.cne|default('-') }}</div>
+                                    </div>
+                                {% endif %}
+                                {% if 'ROLE_TEACHER' in user.roles %}
+                                    <div>
+                                        <div class="text-xs font-bold text-gray-400 uppercase mb-1">Spécialité</div>
+                                        <div class="font-medium text-gray-900">{{ user.specialty|default('-') }}</div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if 'ROLE_STUDENT' in user.roles %}
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Résultats Académiques</h3>
+                
+                {% if gradesBySemester is empty %}
+                    <div class="bg-slate-50 rounded-xl p-8 text-center text-slate-500">
+                        Aucune note enregistrée pour cet étudiant.
+                    </div>
+                {% else %}
+                    <div class="space-y-6">
+                        {% for semester, grades in gradesBySemester %}
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                            <div class="bg-slate-50 px-6 py-3 border-b border-slate-100 flex justify-between items-center">
+                                <h4 class="font-bold text-slate-700">Semestre {{ semester }}</h4>
+                                <div class="flex gap-2">
+                                    <span class="text-xs font-medium bg-white border border-slate-200 px-2 py-1 rounded text-slate-500">{{ grades|length }} modules</span>
+                                    {% if semAverages[semester] is defined %}
+                                        <span class="text-xs font-bold px-2 py-1 rounded {{ semAverages[semester] >= 10 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            Moyenne: {{ semAverages[semester]|number_format(2) }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <table class="w-full">
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for grade in grades %}
+                                    {% set moyenne = ((grade.ccGrade|default(0) + grade.examGrade|default(0) * 2) / 3)|number_format(2) %}
+                                    <tr>
+                                        <td class="px-6 py-4">
+                                            <div class="font-medium text-gray-900">{{ grade.module.name }}</div>
+                                            <div class="text-xs text-gray-500">Coef: {{ grade.module.coefficient }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 text-right">
+                                            <div class="flex flex-col items-end gap-1">
+                                                <div class="text-xs text-gray-500">CC: <span class="font-semibold text-gray-700">{{ grade.ccGrade|default('-') }}</span></div>
+                                                <div class="text-xs text-gray-500">Exam: <span class="font-semibold text-gray-700">{{ grade.examGrade|default('-') }}</span></div>
+                                                <div class="font-bold text-lg {{ moyenne >= 10 ? 'text-green-600' : 'text-red-600' }}">
+                                                    {{ moyenne }}/20
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endif %}
+
+             {% if 'ROLE_TEACHER' in user.roles %}
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Affectations d'Enseignement</h3>
+                 {% if assignments is empty %}
+                    <div class="bg-slate-50 rounded-xl p-8 text-center text-slate-500">
+                        Aucune affectation en cours.
+                    </div>
+                {% else %}
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                        <table class="w-full">
+                            <thead class="bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase">Module</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase">Classe</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase">Semestre</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for assignment in assignments %}
+                                <tr>
+                                    <td class="px-6 py-4 font-medium text-gray-900">{{ assignment.module.name }}</td>
+                                    <td class="px-6 py-4 text-gray-600">{{ assignment.associatedClass.name }}</td>
+                                    <td class="px-6 py-4 text-gray-600">S{{ assignment.module.semester }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+             {% endif %}
+        </div>
+    </main>
+    
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

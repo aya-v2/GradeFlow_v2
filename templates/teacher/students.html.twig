@@ -1,0 +1,89 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Étudiants - {{ classe.name }}{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <header class="mb-8">
+                <a href="{{ path('app_teacher_classes') }}" class="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-4 inline-flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Retour aux classes
+                </a>
+                <h1 class="text-4xl font-bold text-gray-900">{{ classe.name }}</h1>
+                <p class="text-gray-500 text-sm mt-2">{{ classe.filiere.name }} - Niveau L{{ classe.level }}</p>
+            </header>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <h2 class="text-lg font-bold text-gray-900">Étudiants ({{ students | length }})</h2>
+                    <button onclick="window.print()" 
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        Imprimer/PDF
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 border-b border-slate-100">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Prénom</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Nom</th>
+                                <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Date de Naissance</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% if students is empty %}
+                            <tr>
+                                <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                                    Aucun étudiant dans cette classe
+                                </td>
+                            </tr>
+                            {% else %}
+                            {% for student in students %}
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-6 py-4 text-sm font-mono text-gray-700">#{{ student.id }}</td>
+                                <td class="px-6 py-4 text-gray-900 font-medium">{{ student.firstName }}</td>
+                                <td class="px-6 py-4 text-gray-900 font-medium">{{ student.lastName }}</td>
+                                <td class="px-6 py-4 text-gray-700">
+                                    {% if student.birthDate %}
+                                        {{ student.birthDate | date('d/m/Y') }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style media="print">
+        body {
+            background-color: white !important;
+        }
+        nav {
+            display: none;
+        }
+        a {
+            color: #000 !important;
+        }
+        button {
+            display: none !important;
+        }
+    </style>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

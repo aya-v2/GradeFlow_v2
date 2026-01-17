@@ -1,0 +1,101 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Affectations Enseignants{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-4xl font-bold text-gray-900">Affectations Enseignants</h1>
+                <a href="{{ path('app_admin_assignment_new') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nouvelle Affectation
+                </a>
+            </div>
+
+            {% if currentYear %}
+                <div class="mb-6 flex flex-col sm:flex-row gap-4 items-center justify-between bg-blue-50 border border-blue-200 rounded-2xl px-6 py-4">
+                    <p class="text-blue-800 font-medium">Année actuelle: <span class="font-bold">{{ currentYear.name }}</span></p>
+                    
+                    <form method="get" class="flex gap-2 w-full sm:w-auto">
+                        <input type="text" name="search" value="{{ app.request.query.get('search') }}" placeholder="Rechercher un enseignant..." class="w-full sm:w-64 rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm px-4 py-2">
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold shadow-sm">
+                            Rechercher
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+
+            {% if assignmentsByTeacher is empty %}
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-8 text-center">
+                    <p class="text-slate-600 font-medium">Aucune affectation pour l'année actuelle</p>
+                    <a href="{{ path('app_admin_assignment_new') }}" class="inline-block mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm">
+                        Créer une affectation
+                    </a>
+                </div>
+            {% else %}
+                <div class="space-y-8">
+                {% for item in assignmentsByTeacher %}
+                    {% set teacher = item.teacher %}
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex items-center gap-4">
+                             <div class="h-10 w-10 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold">
+                                {{ teacher.firstName|first }}{{ teacher.lastName|first }}
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-lg">{{ teacher.lastName }} {{ teacher.firstName }}</h3>
+                                <div class="text-sm text-indigo-600">{{ teacher.specialty|default('Sans spécialité') }}</div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead class="bg-slate-50 border-b border-slate-100">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Classe</th>
+                                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Module</th>
+                                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Filière</th>
+                                        <th class="px-6 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wide">Semestre</th>
+                                        <th class="px-6 py-3 text-center text-xs font-bold text-slate-600 uppercase tracking-wide">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    {% for assignment in item.assignments %}
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4 font-bold text-gray-800">{{ assignment.associatedClass.name }}</td>
+                                        <td class="px-6 py-4 text-gray-700">{{ assignment.module.name }}</td>
+                                        <td class="px-6 py-4 text-gray-600">{{ assignment.associatedClass.filiere.name }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="inline-block px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-xs font-bold">
+                                                S{{ assignment.module.semester }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4 text-center">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <a href="{{ path('app_admin_assignment_edit', { id: assignment.id }) }}" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Éditer">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                </a>
+                                                <form method="post" action="{{ path('app_admin_assignment_delete', { id: assignment.id }) }}" class="inline-block" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                                    <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition" title="Supprimer">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

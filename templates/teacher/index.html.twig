@@ -1,0 +1,160 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Tableau de Bord Enseignant{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <header class="mb-8 flex justify-between items-end">
+                <div>
+                    <h1 class="text-3xl font-bold text-slate-900">Tableau de Bord</h1>
+                    <p class="text-slate-500 text-sm mt-1">Bienvenue, Prof. {{ app.user.lastName }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-medium text-slate-900">{{ "now"|date('d F Y') }}</p>
+                    <p class="text-xs text-slate-500">Année Scolaire en cours</p>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Left Column: Assignments (Compact) -->
+                <div class="lg:col-span-2 space-y-8">
+                    <!-- Current Assignments -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <h2 class="text-base font-bold text-slate-800">Modules Actuels</h2>
+                            <span class="text-xs font-semibold px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">{{ currentAssignments|length }} cours</span>
+                        </div>
+                        
+                        <div class="divide-y divide-slate-100">
+                            {% if currentAssignments is empty %}
+                                <div class="p-8 text-center text-slate-500 text-sm">
+                                    Aucun module assigné pour cette année.
+                                </div>
+                            {% else %}
+                                {% for assignment in currentAssignments %}
+                                <div class="p-4 hover:bg-slate-50 transition flex items-center justify-between group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="h-10 w-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                                            {{ assignment.module.name|slice(0,2)|upper }}
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-slate-900 text-sm">{{ assignment.module.name }}</h3>
+                                            <p class="text-xs text-slate-500">
+                                                {{ assignment.associatedClass.name }}
+                                                <span class="mx-1">•</span>
+                                                {{ assignment.associatedClass.filiere.name }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <a href="{{ path('app_teacher_grade', { id: assignment.id }) }}" 
+                                            class="text-indigo-600 hover:text-indigo-800 p-2 rounded-lg hover:bg-indigo-50 transition" title="Saisir les notes">
+                                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Archive Section (Collapsed by default logic handled by simplicity or JS if needed, keeping generic list for now) -->
+                    {% if archiveYears is not empty %}
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                                <h3 class="text-base font-bold text-slate-800">Historique</h3>
+                            </div>
+                            <div class="p-6">
+                                {% for year in archiveYears %}
+                                    <details class="group mb-4 last:mb-0">
+                                        <summary class="flex justify-between items-center font-medium cursor-pointer list-none text-slate-700 hover:text-indigo-600 transition">
+                                            <span>Année {{ year }}</span>
+                                            <span class="transition group-open:rotate-180">
+                                                <svg fill="none" class="w-4 h-4" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </span>
+                                        </summary>
+                                        <div class="text-slate-500 mt-4 pl-4 border-l-2 border-slate-100 space-y-3">
+                                            {% for assignment in archiveAssignments[year] %}
+                                                <div class="flex justify-between text-sm">
+                                                    <span>{{ assignment.module.name }} ({{ assignment.associatedClass.name }})</span>
+                                                    <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">Archivé</span>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </details>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Right Column: Calendar & Tools -->
+                <div class="space-y-6">
+                    <!-- Calendar Widget -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">Calendrier</h3>
+                        <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">L</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">M</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">M</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">J</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">V</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">S</div>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase">D</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-1 text-center" id="calendar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof jQuery === 'undefined') { console.error('jQuery missing'); return; }
+        
+        jQuery(function($) {
+            const $calendar = $('#calendar');
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const date = today.getDate();
+            
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            // Adjust for Monday start (0=Sun, 1=Mon...)
+            // Target: Mon=0, Sun=6
+            // JS: Sun=0, Mon=1
+            // Formula: (day + 6) % 7
+            const emptyCells = (firstDay + 6) % 7;
+
+            for (let i = 0; i < emptyCells; i++) {
+                $calendar.append('<div></div>');
+            }
+            
+            for (let d = 1; d <= daysInMonth; d++) {
+                const isToday = (d === date);
+                const classes = isToday 
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
+                    : 'text-slate-600 hover:bg-slate-50';
+                
+                const $day = $('<div>', {
+                    class: `w-8 h-8 flex items-center justify-center rounded-lg text-xs font-medium transition cursor-default ${classes}`,
+                    text: d
+                });
+                
+                $calendar.append($day);
+            }
+        });
+    });
+    </script>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

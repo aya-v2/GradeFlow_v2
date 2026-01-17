@@ -1,0 +1,92 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% if edit %}Éditer{% else %}Créer{% endif %} Classe{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-2xl mx-auto">
+            <a href="{{ path('app_admin_classes') }}" class="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-6 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Retour aux classes
+            </a>
+
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900">{% if edit %}Éditer Classe{% else %}Créer Classe{% endif %}</h1>
+            </header>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                <form method="post" class="space-y-6">
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Nom de la classe *</label>
+                        <input type="text" name="name" value="{{ classe ? classe.name : '' }}" required
+                               class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                               placeholder="Ex: 3A, 2B, L1-INFO...">
+                    </div>
+
+                    <!-- Level -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Niveau *</label>
+                        <select name="level" required
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="1" {% if classe and classe.level == 1 %}selected{% endif %}>1A (1ère année)</option>
+                            <option value="2" {% if classe and classe.level == 2 %}selected{% endif %}>2A (2ème année)</option>
+                            <option value="3" {% if classe and classe.level == 3 %}selected{% endif %}>3A (3ème année)</option>
+                        </select>
+                    </div>
+
+                    <!-- Filiere -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Filière *</label>
+                        <select name="filiere" required
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-- Sélectionnez une filière --</option>
+                            {% for filiere in filieres %}
+                                <option value="{{ filiere.id }}" {% if classe and classe.filiere.id == filiere.id %}selected{% endif %}>
+                                    {{ filiere.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- School Year -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Année Scolaire *</label>
+                        <select disabled
+                                class="w-full px-4 py-2 border border-slate-200 bg-slate-100 text-gray-500 rounded-lg cursor-not-allowed">
+                            {% for year in schoolYears %}
+                                {% set isSelected = (classe and classe.schoolYear.id == year.id) or (not classe and year.isCurrent) %}
+                                <option value="{{ year.id }}" {% if isSelected %}selected{% endif %}>
+                                    {{ year.name }} {% if year.isCurrent %}(En cours){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <!-- Hidden input to submit the value -->
+                        {% for year in schoolYears %}
+                            {% if (classe and classe.schoolYear.id == year.id) or (not classe and year.isCurrent) %}
+                                <input type="hidden" name="schoolYear" value="{{ year.id }}">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex gap-4 pt-6 border-t border-slate-100">
+                        <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold">
+                            {% if edit %}Enregistrer Modifications{% else %}Créer Classe{% endif %}
+                        </button>
+                        <a href="{{ path('app_admin_classes') }}" class="px-6 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition font-medium">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

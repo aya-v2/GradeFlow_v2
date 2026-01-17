@@ -1,0 +1,52 @@
+{% extends '@EasyAdmin/layout.html.twig' %}
+
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block main %}
+<div class="page-wrapper">
+    <div class="content-wrapper">
+        <!-- Navigation Bar -->
+        <div style="background: white; border-bottom: 1px solid #ddd; padding: 15px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin: 0; font-size: 18px; font-weight: bold;">GradeFlow Admin</h2>
+            <div style="display: flex; gap: 15px;">
+                <a href="{{ path('app_admin_dashboard') }}" style="padding: 8px 16px; color: #333; text-decoration: none; font-weight: 500;">Accueil Admin</a>
+                <a href="{{ path('app_logout') }}" style="padding: 8px 16px; background: #dc2626; color: white; text-decoration: none; font-weight: 500; border-radius: 4px;">Déconnexion</a>
+            </div>
+        </div>
+
+        <div class="content-header">
+            <h1 class="page-title">Admin Dashboard</h1>
+        </div>
+
+        <div class="content">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Gestion Administrative</h5>
+                            <p>Bienvenue dans l'espace d'administration de GradeFlow.</p>
+                            <ul class="list-group mt-3">
+                                <li class="list-group-item">
+                                    <a href="{{ path('app_admin_dashboard') }}?crudAction=list&crudControllerFqcn=App%5CController%5CAdmin%5CUserCrudController">Gestion des Utilisateurs</a>
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{{ path('app_admin_dashboard') }}?crudAction=list&crudControllerFqcn=App%5CController%5CAdmin%5CSchoolYearCrudController">Années Scolaires</a>
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{{ path('app_admin_dashboard') }}?crudAction=list&crudControllerFqcn=App%5CController%5CAdmin%5CClasseCrudController">Classes</a>
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{{ path('app_admin_dashboard') }}?crudAction=list&crudControllerFqcn=App%5CController%5CAdmin%5CFiliereCrudController">Filières</a>
+                                </li>
+                                <li class="list-group-item">
+                                    <a href="{{ path('app_admin_dashboard') }}?crudAction=list&crudControllerFqcn=App%5CController%5CAdmin%5CModuleCrudController">Modules</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

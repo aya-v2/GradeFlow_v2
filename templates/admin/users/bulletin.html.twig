@@ -1,0 +1,63 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bulletin de Notes - {{ user.firstName }} {{ user.lastName }}{% endblock %}
+
+{% block body %}
+<div class="bg-white p-8 max-w-4xl mx-auto print:p-0">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 border-b pb-4">Bulletin de Notes</h1>
+        <div class="mt-4 flex justify-between text-left text-sm">
+            <div>
+                <p><span class="font-bold">Étudiant:</span> {{ user.firstName }} {{ user.lastName }}</p>
+                <p><span class="font-bold">Email:</span> {{ user.email }}</p>
+                <p><span class="font-bold">CNE:</span> {{ user.cne }}</p>
+            </div>
+            <div>
+                 <p><span class="font-bold">Classe:</span> {{ user.classe.name }}</p>
+                 <p><span class="font-bold">Filière:</span> {{ user.classe.filiere.name }}</p>
+                 <p><span class="font-bold">Année:</span> {{ user.classe.schoolYear.name }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% if gradesBySemester is empty %}
+        <p class="text-center text-gray-500 italic">Aucune note disponible.</p>
+    {% else %}
+        <div class="space-y-8">
+            {% for semester, grades in gradesBySemester %}
+                <div class="border rounded-lg overflow-hidden break-inside-avoid">
+                    <div class="bg-gray-100 px-4 py-2 border-b font-bold text-lg">Semestre {{ semester }}</div>
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-4 py-2 text-left">Module</th>
+                                <th class="px-4 py-2 text-center">Note CC</th>
+                                <th class="px-4 py-2 text-center">Note Exam</th>
+                                <th class="px-4 py-2 text-center">Moyenne (Indicatif)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            {% for grade in grades %}
+                                {% set moyenne = ((grade.ccGrade|default(0) + grade.examGrade|default(0) * 2) / 3)|number_format(2) %}
+                                <tr>
+                                    <td class="px-4 py-2">{{ grade.module.name }}</td>
+                                    <td class="px-4 py-2 text-center">{{ grade.ccGrade }}</td>
+                                    <td class="px-4 py-2 text-center">{{ grade.examGrade }}</td>
+                                    <td class="px-4 py-2 text-center font-bold">{{ moyenne }} / 20</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="mt-8 text-center print:hidden">
+        <button onclick="window.print()" class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-bold">
+            Imprimer / PDF
+        </button>
+        <a href="{{ path('app_admin_user_show', {id: user.id}) }}" class="ml-4 text-indigo-600 hover:underline">Retour au profil</a>
+    </div>
+</div>
+{% endblock %}

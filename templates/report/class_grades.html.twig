@@ -1,0 +1,96 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Notes de Classe - {{ assignment.module.name }}{% endblock %}
+
+{% block body %}
+    <div class="min-h-screen bg-gray-50 p-8 print:bg-white print:p-0">
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm print:shadow-none print:w-full">
+            
+            <!-- Actions (Hidden on Print) -->
+            <div class="flex justify-end mb-8 print:hidden gap-4">
+                <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Imprimer
+                </button>
+                <a href="javascript:history.back()" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition font-medium text-gray-700">
+                    Retour
+                </a>
+            </div>
+
+            <!-- Header -->
+            <div class="flex justify-between items-end border-b-2 border-gray-800 pb-6 mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 uppercase">Relevé de Notes</h1>
+                    <p class="text-gray-600 font-medium text-lg mt-1">{{ assignment.module.name }}</p>
+                    <p class="text-gray-500 text-sm">Prof. {{ assignment.teacher.firstName }} {{ assignment.teacher.lastName }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xl font-bold text-gray-900">{{ assignment.associatedClass.name }}</p>
+                    <p class="text-gray-500">{{ assignment.associatedClass.filiere.name }} - {{ assignment.associatedClass.level }}A</p>
+                    <p class="text-gray-400 text-sm mt-1">Année: {{ assignment.associatedClass.schoolYear.name }}</p>
+                </div>
+            </div>
+
+            <!-- Grades Table -->
+            <div class="mb-8">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 border-y border-slate-200">
+                            <th class="py-3 px-4 text-left w-12">#</th>
+                            <th class="py-3 px-4 text-left">Étudiant</th>
+                            <th class="py-3 px-4 text-center w-24 border-l border-slate-200">CC (40%)</th>
+                            <th class="py-3 px-4 text-center w-24 border-l border-slate-200">Exam (60%)</th>
+                            <th class="py-3 px-4 text-center w-24 border-l border-slate-200 font-bold bg-slate-200">Moyenne</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for student in students %}
+                            {% set grade = grades[student.id] ?? null %}
+                            {% set cc = grade ? grade.ccGrade : null %}
+                            {% set exam = grade ? grade.examGrade : null %}
+                            {% set avg = (cc and exam) ? (cc * 0.4 + exam * 0.6) : null %}
+                            
+                            <tr class="{% if loop.index is even %}bg-slate-50{% endif %}">
+                                <td class="py-3 px-4 text-gray-500 font-mono">{{ loop.index }}</td>
+                                <td class="py-3 px-4 font-medium text-gray-900">{{ student.lastName }} {{ student.firstName }}</td>
+                                <td class="py-3 px-4 text-center border-l border-slate-100 text-gray-600">
+                                    {{ cc is not null ? cc|number_format(2) : '-' }}
+                                </td>
+                                <td class="py-3 px-4 text-center border-l border-slate-100 text-gray-600">
+                                    {{ exam is not null ? exam|number_format(2) : '-' }}
+                                </td>
+                                <td class="py-3 px-4 text-center border-l border-slate-100 font-bold 
+                                    {% if avg is not null %}
+                                        {% if avg >= 12 %}bg-green-50 text-green-700{% elseif avg >= 10 %}bg-amber-50 text-amber-700{% else %}bg-red-50 text-red-700{% endif %}
+                                    {% else %}
+                                        bg-gray-50 text-gray-400
+                                    {% endif %}
+                                ">
+                                    {{ avg is not null ? avg|number_format(2) : '-' }}
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-gray-500">Aucun étudiant dans cette classe.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Signature Area -->
+            <div class="grid grid-cols-2 gap-8 mt-16 pt-8 break-inside-avoid">
+                <div>
+                    <p class="text-sm font-bold text-gray-400 uppercase mb-16">Signature de l'Administration</p>
+                    <div class="h-px bg-gray-200 w-2/3"></div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-400 uppercase mb-16">Signature de l'Enseignant</p>
+                    <div class="h-px bg-gray-200 w-2/3 ml-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

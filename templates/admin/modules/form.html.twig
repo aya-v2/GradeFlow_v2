@@ -1,0 +1,87 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% if edit %}Éditer{% else %}Créer{% endif %} Module{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-2xl mx-auto">
+            <a href="{{ path('app_admin_modules') }}" class="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-6 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Retour aux modules
+            </a>
+
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900">{% if edit %}Éditer Module{% else %}Créer Module{% endif %}</h1>
+            </header>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                <form method="post" class="space-y-6">
+                    <!-- Name -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Nom du module *</label>
+                        <input type="text" name="name" value="{{ module ? module.name : '' }}" required
+                               class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                               placeholder="Ex: Mathématiques, Programmation Web...">
+                    </div>
+
+                    <!-- Filiere -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Filière *</label>
+                        <select name="filiere" required
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-- Sélectionnez une filière --</option>
+                            {% for filiere in filieres %}
+                                <option value="{{ filiere.id }}" {% if module and module.filiere.id == filiere.id %}selected{% endif %}>
+                                    {{ filiere.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Semester -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Semestre *</label>
+                        <select name="semester" required
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-- Sélectionnez --</option>
+                            <option value="1" {% if module and module.semester == 1 %}selected{% endif %}>S1</option>
+                            <option value="2" {% if module and module.semester == 2 %}selected{% endif %}>S2</option>
+                            <option value="3" {% if module and module.semester == 3 %}selected{% endif %}>S3</option>
+                            <option value="4" {% if module and module.semester == 4 %}selected{% endif %}>S4</option>
+                            <option value="5" {% if module and module.semester == 5 %}selected{% endif %}>S5</option>
+                            <option value="6" {% if module and module.semester == 6 %}selected{% endif %}>S6</option>
+                            <option value="7" {% if module and module.semester == 7 %}selected{% endif %}>S7</option>
+                            <option value="8" {% if module and module.semester == 8 %}selected{% endif %}>S8</option>
+                            <option value="9" {% if module and module.semester == 9 %}selected{% endif %}>S9</option>
+                            <option value="10" {% if module and module.semester == 10 %}selected{% endif %}>S10</option>
+                        </select>
+                    </div>
+
+                    <!-- Coefficient -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Coefficient *</label>
+                        <input type="number" name="coefficient" value="{{ module ? module.coefficient : '' }}" required step="0.1" min="0"
+                               class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                               placeholder="Ex: 1, 2, 3...">
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex gap-4 pt-6 border-t border-slate-100">
+                        <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold">
+                            {% if edit %}Enregistrer Modifications{% else %}Créer Module{% endif %}
+                        </button>
+                        <a href="{{ path('app_admin_modules') }}" class="px-6 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition font-medium">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

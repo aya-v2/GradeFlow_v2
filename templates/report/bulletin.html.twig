@@ -1,0 +1,102 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Bulletin de Notes - {{ student.firstName }} {{ student.lastName }}{% endblock %}
+
+{% block body %}
+    <div class="min-h-screen bg-gray-50 p-8 print:bg-white print:p-0">
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-sm print:shadow-none print:w-full">
+            
+            <!-- Actions (Hidden on Print) -->
+            <div class="flex justify-end mb-8 print:hidden gap-4">
+                <button onclick="window.print()" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Imprimer / Enregistrer en PDF
+                </button>
+                <a href="javascript:history.back()" class="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition font-medium text-gray-700">
+                    Retour
+                </a>
+            </div>
+
+            <!-- Header -->
+            <div class="text-center border-b-2 border-gray-800 pb-6 mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 uppercase tracking-widest mb-2">Bulletin de Notes</h1>
+                <p class="text-lg text-gray-600 font-medium">Cycle d'Ingénieur</p>
+                {% if year %}
+                    <p class="text-md text-gray-500 mt-1">Année Scolaire: {{ year.name }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Student Info -->
+            <div class="grid grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h2 class="text-sm uppercase tracking-wide text-gray-500 font-bold mb-1">Étudiant</h2>
+                    <p class="text-xl font-bold text-gray-900">{{ student.firstName }} {{ student.lastName }}</p>
+                    <p class="text-gray-600">{{ student.email }}</p>
+                </div>
+                <div class="text-right">
+                    <h2 class="text-sm uppercase tracking-wide text-gray-500 font-bold mb-1">Classe</h2>
+                    {% if student.classe %}
+                        <p class="text-xl font-bold text-gray-900">{{ student.classe.name }}</p>
+                        <p class="text-gray-600">{{ student.classe.filiere.name }} - {{ student.classe.level }}A</p>
+                    {% else %}
+                        <p class="text-gray-400">Non assigné</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Grades Table -->
+            {% if modulesBySemester is empty %}
+                <div class="text-center py-12 bg-slate-50 rounded-lg">
+                    <p class="text-gray-500">Aucune note validée disponible pour le moment.</p>
+                </div>
+            {% else %}
+                {% for semester, grades in modulesBySemester %}
+                    <div class="mb-8 break-inside-avoid">
+                        <h3 class="text-lg font-bold text-indigo-900 border-b border-indigo-200 pb-2 mb-4">Semestre {{ semester }}</h3>
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-700">
+                                    <th class="py-2 px-4 text-left rounded-l-lg">Module</th>
+                                    <th class="py-2 px-4 text-center">Coef.</th>
+                                    <th class="py-2 px-4 text-center">Contrôle (CC)</th>
+                                    <th class="py-2 px-4 text-center">Examen</th>
+                                    <th class="py-2 px-4 text-center font-bold">Moyenne</th>
+                                    <th class="py-2 px-4 text-center rounded-r-lg">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for grade in grades %}
+                                    {% set avg = (grade.ccGrade * 0.4) + (grade.examGrade * 0.6) %}
+                                    <tr>
+                                        <td class="py-3 px-4 font-medium text-gray-900">{{ grade.module.name }}</td>
+                                        <td class="py-3 px-4 text-center text-gray-500">{{ grade.module.coefficient }}</td>
+                                        <td class="py-3 px-4 text-center">{{ grade.ccGrade|number_format(2) }}</td>
+                                        <td class="py-3 px-4 text-center">{{ grade.examGrade|number_format(2) }}</td>
+                                        <td class="py-3 px-4 text-center font-bold {% if avg >= 12 %}text-green-700{% elseif avg >= 10 %}text-amber-600{% else %}text-red-600{% endif %}">
+                                            {{ avg|number_format(2) }}
+                                        </td>
+                                        <td class="py-3 px-4 text-center">
+                                            {% if avg >= 10 %}
+                                                <span class="text-xs font-bold text-green-700 uppercase">Validé</span>
+                                            {% else %}
+                                                <span class="text-xs font-bold text-red-700 uppercase">Non Validé</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500 print:mt-24">
+                <p>GradeFlow - Système de Gestion Scolaire</p>
+                <p>Généré le {{ "now"|date("d/m/Y") }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}

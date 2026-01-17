@@ -1,0 +1,347 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Notes{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <div class="min-h-screen bg-white py-8 px-4 sm:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                <div>
+                     <h2 class="text-3xl font-bold text-gray-900">Mes Résultats</h2>
+                     <p class="text-gray-500 mt-1">Consultez vos notes et votre progression académique</p>
+                </div>
+               
+                <div class="flex items-center gap-3">
+                    <label class="text-gray-700 font-medium whitespace-nowrap">Année Scolaire</label>
+                    <select id="year-select" class="block w-full sm:w-48 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm">
+                        {% for y in years %}
+                            <option value="{{ y }}" {{ y == defaultYear ? 'selected' : '' }}>{{ y }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6">
+                <!-- Tab Navigation -->
+                <div class="bg-gray-100 p-1 rounded-xl inline-flex flex-wrap w-full sm:w-auto">
+                    <button class="tab-btn flex-1 sm:flex-none py-2 px-6 rounded-lg text-sm font-bold transition-all duration-200 text-gray-600 hover:text-gray-900 focus:outline-none active" data-tab="sem1" style="min-width: 120px;">
+                        <span id="sem1-label">Semestre 1</span>
+                    </button>
+                    <button class="tab-btn flex-1 sm:flex-none py-2 px-6 rounded-lg text-sm font-bold transition-all duration-200 text-gray-600 hover:text-gray-900 focus:outline-none" data-tab="sem2" style="min-width: 120px;">
+                        <span id="sem2-label">Semestre 2</span>
+                    </button>
+                    <button class="tab-btn flex-1 sm:flex-none py-2 px-6 rounded-lg text-sm font-bold transition-all duration-200 text-gray-600 hover:text-gray-900 focus:outline-none" data-tab="chart" style="min-width: 120px;">
+                        Graphique
+                    </button>
+                </div>
+
+                <!-- Semester 1 Tab -->
+                <div id="sem1" class="tab-content block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="border-b border-slate-100 px-6 py-4 flex flex-wrap justify-between items-center gap-4 bg-slate-50">
+                        <h3 class="font-bold text-gray-900 text-lg" id="sem1-heading">Détails du Semestre 1</h3>
+                        <button id="s1-export-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm transition hidden">
+                            <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Télécharger Bulletin
+                        </button>
+                    </div>
+                    <div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left" id="s1-table">
+                                <thead class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-3">Module</th>
+                                        <th class="px-6 py-3 text-center">Coef</th>
+                                        <th class="px-6 py-3 text-center">CC</th>
+                                        <th class="px-6 py-3 text-center">Examen</th>
+                                        <th class="px-6 py-3 text-center">Moyenne</th>
+                                        <th class="px-6 py-3 text-center">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100" id="s1-tbody">
+                                    <tr><td colspan="6" class="text-center py-8 text-gray-500">Chargement des données...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-6 py-4 bg-indigo-50 border-t border-indigo-100 flex justify-end items-center">
+                            <span class="text-indigo-900 font-medium mr-2">Moyenne Générale :</span>
+                            <span id="s1-avg-val" class="text-2xl font-bold text-indigo-700">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Semester 2 Tab -->
+                <div id="sem2" class="tab-content hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="border-b border-slate-100 px-6 py-4 flex flex-wrap justify-between items-center gap-4 bg-slate-50">
+                        <h3 class="font-bold text-gray-900 text-lg" id="sem2-heading">Détails du Semestre 2</h3>
+                         <button id="s2-export-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-sm transition hidden">
+                            <svg class="mr-2 -ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Télécharger Bulletin
+                        </button>
+                    </div>
+                    <div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left" id="s2-table">
+                                <thead class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-100">
+                                    <tr>
+                                        <th class="px-6 py-3">Module</th>
+                                        <th class="px-6 py-3 text-center">Coef</th>
+                                        <th class="px-6 py-3 text-center">CC</th>
+                                        <th class="px-6 py-3 text-center">Examen</th>
+                                        <th class="px-6 py-3 text-center">Moyenne</th>
+                                        <th class="px-6 py-3 text-center">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100" id="s2-tbody">
+                                    <tr><td colspan="6" class="text-center py-8 text-gray-500">Chargement des données...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-6 py-4 bg-indigo-50 border-t border-indigo-100 flex justify-end items-center">
+                            <span class="text-indigo-900 font-medium mr-2">Moyenne Générale :</span>
+                            <span id="s2-avg-val" class="text-2xl font-bold text-indigo-700">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Tab -->
+                <div id="chart" class="tab-content hidden bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="border-b border-slate-100 px-6 py-4 bg-slate-50">
+                        <h3 class="font-bold text-gray-900 text-lg">Visualisation des Performances</h3>
+                    </div>
+                    <div class="p-6">
+                        <div class="relative h-96 w-full">
+                            <canvas id="unified-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            if (typeof jQuery === 'undefined') { console.error('jQuery missing in student/grades'); return; }
+            jQuery(function($){
+                var charts = {};
+                var currentSemesterNames = {};
+
+                // Tab switching
+                $('.tab-btn').on('click', function(){
+                    const tabName = $(this).data('tab');
+                    
+                    // Reset all tabs
+                    $('.tab-btn').removeClass('bg-white shadow text-indigo-600').addClass('text-gray-600 hover:text-gray-900');
+                    
+                    // Activate clicked tab
+                    $(this).removeClass('text-gray-600 hover:text-gray-900').addClass('bg-white shadow text-indigo-600');
+                    
+                    // Show content
+                    $('.tab-content').addClass('hidden');
+                    $('#' + tabName).removeClass('hidden');
+                    
+                    // Trigger chart redraw when opened
+                    if (tabName === 'chart' && charts['unified']) {
+                        setTimeout(() => charts['unified'].resize(), 100);
+                    }
+                });
+
+                function loadData(year){
+                    console.log('Loading data for year:', year);
+                    $.ajax({
+                        url: '{{ path('app_student_grades_data') }}',
+                        data: { year: year || '{{ defaultYear }}' },
+                        dataType: 'json',
+                        success: function(resp){
+                            console.log('Response received:', resp);
+                            if (!resp || !resp.semesters) {
+                                console.error('Invalid response', resp);
+                                alert('Erreur: réponse invalide');
+                                return;
+                            }
+                            
+                            // Update semester names
+                            if (resp.semesterNames) {
+                                currentSemesterNames = resp.semesterNames;
+                                $('#sem1-label').text(resp.semesterNames.S1 || 'Semestre 1');
+                                $('#sem2-label').text(resp.semesterNames.S2 || 'Semestre 2');
+                            }
+                            
+                            renderTable('#s1-tbody', resp.semesters.S1 || []);
+                            renderTable('#s2-tbody', resp.semesters.S2 || []);
+                            
+                            // Check export availability and update button visibility
+                            console.log('S1 modules:', resp.semesters.S1);
+                            console.log('S2 modules:', resp.semesters.S2);
+                            
+                            const s1Data = resp.semesters.S1 || [];
+                            const s2Data = resp.semesters.S2 || [];
+                            
+                            const s1Finalized = s1Data.length > 0 && s1Data.every(m => m.final !== null && m.final !== undefined);
+                            const s2Finalized = s2Data.length > 0 && s2Data.every(m => m.final !== null && m.final !== undefined);
+                            
+                            console.log('S1 length:', s1Data.length, 'Every finalized:', s1Data.every(m => {
+                                console.log('  Module:', m.module, 'Final:', m.final);
+                                return m.final !== null && m.final !== undefined;
+                            }));
+                            console.log('S2 length:', s2Data.length, 'Every finalized:', s2Data.every(m => {
+                                console.log('  Module:', m.module, 'Final:', m.final);
+                                return m.final !== null && m.final !== undefined;
+                            }));
+                            
+                            if (s1Finalized) {
+                                console.log('Showing S1 export button');
+                                $('#s1-export-btn').removeClass('hidden');
+                            } else {
+                                console.log('Hiding S1 export button');
+                                $('#s1-export-btn').addClass('hidden');
+                            }
+                            
+                            if (s2Finalized) {
+                                console.log('Showing S2 export button');
+                                $('#s2-export-btn').removeClass('hidden');
+                            } else {
+                                console.log('Hiding S2 export button');
+                                $('#s2-export-btn').addClass('hidden');
+                            }
+                            
+                            // Display semester averages
+                            if (resp.semesterAverages) {
+                                $('#s1-avg-val').text(resp.semesterAverages.S1 !== null ? resp.semesterAverages.S1.toFixed(2) : '—');
+                                $('#s2-avg-val').text(resp.semesterAverages.S2 !== null ? resp.semesterAverages.S2.toFixed(2) : '—');
+                            }
+                            
+                            renderUnifiedChart(resp.chart || []);
+                        },
+                        error: function(xhr){ 
+                            console.error('AJAX error', xhr);
+                            alert('Erreur chargement des notes: ' + xhr.status); 
+                        }
+                    });
+                }
+
+                function renderTable(selector, rows){
+                    const $tbody = $(selector);
+                    $tbody.empty();
+                    if (!rows || !rows.length) {
+                        $tbody.append('<tr><td colspan="6" class="text-center py-4 text-gray-500">Aucun module</td></tr>');
+                        return;
+                    }
+                    rows.forEach(r => {
+                        const final = r.final !== null ? r.final.toFixed(2) : '—';
+                        let resultHtml = '—';
+                        if (r.result === 'VALIDÉ') {
+                            resultHtml = '<span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">VALIDÉ</span>';
+                        } else if (r.result === 'RATTRAPAGE') {
+                            resultHtml = '<span class="inline-block bg-red-100 text-red-800 text-xs font-semibold px-2 py-1 rounded">RATTRAPAGE</span>';
+                        }
+                        $tbody.append('<tr class="hover:bg-gray-50">'+
+                            '<td class="px-3 py-2">'+escapeHtml(r.module)+'</td>'+
+                            '<td class="text-center px-3 py-2">'+(r.coefficient||'')+'</td>'+
+                            '<td class="text-center px-3 py-2">'+(r.cc!==null? r.cc : '—')+'</td>'+
+                            '<td class="text-center px-3 py-2">'+(r.exam!==null? r.exam : '—')+'</td>'+
+                            '<td class="text-center px-3 py-2 font-semibold">'+final+'</td>'+
+                            '<td class="text-center px-3 py-2">'+resultHtml+'</td>'+
+                            '</tr>');
+                    });
+                }
+
+                function escapeHtml(text){
+                    if (text === null || text === undefined) return '';
+                    return String(text).replace(/[&<>\"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; });
+                }
+
+                function renderUnifiedChart(chartData){
+                    const $canvas = $('#unified-chart');
+                    if (!$canvas.length) {
+                        console.warn('Canvas not found');
+                        return;
+                    }
+                    
+                    if (!chartData || !chartData.length) {
+                        // No grades with finals, show empty message
+                        const ctx = $canvas[0].getContext('2d');
+                        if (charts['unified']) charts['unified'].destroy();
+                        ctx.clearRect(0, 0, $canvas[0].width, $canvas[0].height);
+                        ctx.font = '14px Arial';
+                        ctx.fillStyle = '#999';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('Aucun module avec notes finales', $canvas[0].width / 2, $canvas[0].height / 2);
+                        return;
+                    }
+                    
+                    const ctx = $canvas[0].getContext('2d');
+                    const labels = chartData.map(d => d.name);
+                    const data = chartData.map(d => d.final);
+                    
+                    if (charts['unified']) charts['unified'].destroy();
+                    
+                    charts['unified'] = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Notes Finales',
+                                data: data,
+                                borderColor: 'rgba(59, 130, 246, 1)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                                borderWidth: 2,
+                                pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                                pointBorderColor: '#fff',
+                                pointRadius: 5,
+                                pointHoverRadius: 7
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                r: {
+                                    beginAtZero: true,
+                                    suggestedMax: 20,
+                                    grid: { color: 'rgba(0,0,0,0.1)' },
+                                    ticks: { stepSize: 5 }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: true },
+                                title: { display: true, text: 'Récapitulatif des Notes Finales' }
+                            }
+                        }
+                    });
+                }
+
+                // initial load with default year
+                loadData('{{ defaultYear }}');
+
+                $('#year-select').on('change', function(){ 
+                    console.log('Year changed to:', $(this).val());
+                    loadData($(this).val()); 
+                });
+
+                // Export button click handlers
+                $('#s1-export-btn').on('click', function() {
+                    const year = $('#year-select').val();
+                    const url = '{{ path('app_student_bulletin_export') }}?year=' + encodeURIComponent(year) + '&semester=S1';
+                    window.location.href = url;
+                });
+
+                $('#s2-export-btn').on('click', function() {
+                    const year = $('#year-select').val();
+                    const url = '{{ path('app_student_bulletin_export') }}?year=' + encodeURIComponent(year) + '&semester=S2';
+                    window.location.href = url;
+                });
+            });
+        });
+    </script>
+
+        </div>
+    </div>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

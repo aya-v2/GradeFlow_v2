@@ -1,0 +1,95 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Gestion des Modules{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-4xl font-bold text-gray-900">Gestion des Modules</h1>
+                <a href="{{ path('app_admin_module_new') }}" class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Nouveau Module
+                </a>
+            </div>
+
+            <!-- Filter -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-8 flex items-center gap-4">
+                <span class="text-sm font-bold text-gray-500 uppercase">Filtrer par Filière:</span>
+                <div class="flex flex-wrap gap-2">
+                    <a href="{{ path('app_admin_modules') }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition {{ not currentFiliereId ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                        Toutes
+                    </a>
+                    {% for filiere in allFilieres %}
+                        <a href="{{ path('app_admin_modules', {'filiere': filiere.id}) }}" class="px-3 py-1.5 rounded-lg text-sm font-medium transition {{ currentFiliereId == filiere.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                            {{ filiere.code }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if modulesByFiliere is empty %}
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-8 text-center">
+                    <p class="text-slate-600 font-medium">Aucun module trouvé pour cette sélection.</p>
+                     <a href="{{ path('app_admin_module_new') }}" class="inline-block mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-medium text-sm">
+                        Créer un module
+                    </a>
+                </div>
+            {% else %}
+                <div class="space-y-12">
+                {% for item in modulesByFiliere %}
+                    <div class="relative">
+                         <div class="flex items-center gap-4 mb-6 sticky top-0 bg-white/95 backdrop-blur py-4 z-10 border-b border-indigo-100">
+                             <div class="h-10 w-1 bg-indigo-600 rounded-full"></div>
+                             <h2 class="text-2xl font-bold text-gray-900">{{ item.filiere.name }} <span class="text-slate-400 text-lg font-normal">({{ item.filiere.code }})</span></h2>
+                         </div>
+
+                         {% if item.semesters is empty %}
+                            <p class="text-slate-500 italic ml-5">Aucun module dans cette filière.</p>
+                         {% else %}
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {% for semester, modules in item.semesters %}
+                                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                                        <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 flex justify-between items-center">
+                                            <h3 class="font-bold text-slate-700">Semestre {{ semester }}</h3>
+                                            <span class="text-xs font-semibold bg-white border border-slate-300 px-2 py-0.5 rounded text-slate-500">{{ modules|length }} Modules</span>
+                                        </div>
+                                        <div class="divide-y divide-slate-100 flex-1">
+                                            {% for module in modules %}
+                                                <div class="p-4 hover:bg-slate-50 transition group flex justify-between items-center">
+                                                    <div>
+                                                        <div class="font-bold text-gray-800 text-sm mb-1">{{ module.name }}</div>
+                                                        <div class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
+                                                            Coef: {{ module.coefficient }}
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <a href="{{ path('app_admin_module_edit', { id: module.id }) }}" class="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-md" title="Éditer">
+                                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                                        </a>
+                                                        <form method="post" action="{{ path('app_admin_module_delete', { id: module.id }) }}" class="inline-block" onsubmit="return confirm('Êtes-vous sûr ?');">
+                                                            <button type="submit" class="p-1.5 text-red-600 hover:bg-red-100 rounded-md" title="Supprimer">
+                                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                         {% endif %}
+                    </div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Classe {{ classe.name }}{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between mb-8 print:hidden">
+                <div>
+                     <a href="{{ path('app_admin_classes') }}" class="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-2 inline-flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Retour aux classes
+                    </a>
+                    <h1 class="text-3xl font-bold text-gray-900">Classe {{ classe.name }}</h1>
+                    <p class="text-gray-500 text-sm mt-1">{{ classe.filiere.name }} - Niveau {{ classe.level }}A - {{ classe.schoolYear.name }}</p>
+                </div>
+                <div>
+                    <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Imprimer Liste
+                    </button>
+                </div>
+            </div>
+
+            <!-- Print Header -->
+            <div class="hidden print:block mb-8 text-center border-b pb-4">
+                <h1 class="text-2xl font-bold">Liste des étudiants</h1>
+                <p class="text-lg">Classe: {{ classe.name }} ({{ classe.filiere.code }})</p>
+                <p class="text-sm text-gray-600">{{ classe.schoolYear.name }}</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print:border-0 print:shadow-none">
+                <table class="w-full">
+                    <thead class="bg-slate-50 border-b border-slate-100 print:bg-white print:border-black">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wide print:text-black">#</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wide print:text-black">Nom Prénom</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wide print:text-black">CNE</th>
+                            <th class="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wide print:text-black">Email</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 print:divide-black">
+                        {% for student in students %}
+                        <tr class="hover:bg-slate-50 transition print:hover:bg-transparent">
+                            <td class="px-6 py-4 text-gray-500 w-12">{{ loop.index }}</td>
+                            <td class="px-6 py-4 font-bold text-gray-900">{{ student.lastName }} {{ student.firstName }}</td>
+                            <td class="px-6 py-4 text-gray-600 font-mono text-sm">{{ student.cne|default('-') }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ student.email }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="px-6 py-8 text-center text-gray-500 italic">
+                                Aucun étudiant dans cette classe.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4 text-right text-sm text-gray-500 hidden print:block">
+                 Généré le: {{ "now"|date("d/m/Y H:i") }}
+            </div>
+        </div>
+    </main>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

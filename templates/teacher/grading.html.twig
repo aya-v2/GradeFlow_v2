@@ -1,0 +1,279 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Saisie des Notes{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-7xl mx-auto">
+            <a href="{{ path('app_teacher_grading') }}" class="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-6 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Retour à la sélection
+            </a>
+
+            <header class="mb-8">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-900">Saisir les Notes</h1>
+                        <h2 class="text-xl text-indigo-600 font-semibold mt-1">{{ assignment.associatedClass.name }} - {{ assignment.module.name }}</h2>
+                        <p class="text-gray-500 text-sm mt-2">Filière: {{ assignment.associatedClass.filiere.name }} | Niveau: L{{ assignment.associatedClass.level }}</p>
+                    </div>
+                </div>
+                
+                {% if not isCurrentYear %}
+                    <div class="mt-6 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4">
+                        <p class="text-sm font-medium text-amber-800">
+                            <strong>⚠ Attention:</strong> Cette année est archivée. Les modifications ne sont pas autorisées.
+                        </p>
+                    </div>
+                {% endif %}
+            </header>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-5 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-bold text-gray-900">Étudiants ({{ students | length }})</h3>
+                </div>
+                <div class="p-6">
+                
+                <form method="post">
+                    <div class="overflow-x-auto mb-6">
+                        <table class="w-full text-sm">
+                            <thead class="bg-slate-50 border-b border-slate-100">
+                                <tr>
+                                    <th class="text-left px-6 py-3 font-bold text-slate-600 uppercase tracking-wide">Étudiant</th>
+                                    <th class="text-center px-6 py-3 font-bold text-slate-600 uppercase tracking-wide w-32">CC (/20)</th>
+                                    <th class="text-center px-6 py-3 font-bold text-slate-600 uppercase tracking-wide w-32">Exam (/20)</th>
+                                    <th class="text-center px-6 py-3 font-bold text-slate-600 uppercase tracking-wide w-24">Final</th>
+                                    <th class="text-center px-6 py-3 font-bold text-slate-600 uppercase tracking-wide w-24">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                {% for student in students %}
+                                    {# Check if grade exists for this student #}
+                                    {% set grade = grades[student.id] ?? null %}
+                                    
+                                    <tr class="hover:bg-slate-50 transition">
+                                        <td class="px-6 py-4">
+                                            <div>
+                                                <strong class="block text-gray-900">{{ student.lastName|upper }}</strong>
+                                                <span class="text-gray-600 text-sm">{{ student.firstName }}</span>
+                                                <small class="block text-gray-400 text-xs mt-1">#{{ student.id }}</small>
+                                            </div>
+                                        </td>
+                                        
+                                        {# CC INPUT #}
+                                        <td class="text-center px-6 py-4">
+                                            <input type="number" 
+                                                   name="cc[{{ student.id }}]" 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                                                   step="0.01" min="0" max="20" 
+                                                   value="{{ grade ? grade.ccGrade : '' }}"
+                                                   placeholder="-"
+                                                   {% if not isCurrentYear %}disabled{% elseif grade and (grade.isCcApproved() or grade.isFinalized()) %}readonly{% endif %}>
+                                        </td>
+
+                                        {# EXAM INPUT #}
+                                        <td class="text-center px-6 py-4">
+                                            <input type="number" 
+                                                   name="exam[{{ student.id }}]" 
+                                                   class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                                                   step="0.01" min="0" max="20" 
+                                                   value="{{ grade ? grade.examGrade : '' }}"
+                                                   placeholder="-"
+                                                   {% if not (grade and (grade.isCcApproved() or grade.isFinalized())) %}disabled{% endif %}
+                                                   {% if grade and grade.isFinalized() %}readonly{% endif %}>
+                                        </td>
+
+                                        {# FINAL DISPLAY #}
+                                        <td data-final-cell="{{ student.id }}" class="text-center px-6 py-4 font-semibold text-gray-900">
+                                            {% if grade and grade.examGrade is not null %}
+                                                {% set cc = grade.ccGrade is not null ? grade.ccGrade : 0 %}
+                                                {% set exam = grade.examGrade is not null ? grade.examGrade : 0 %}
+                                                {% set final = (cc * 0.3) + (exam * 0.7) %}
+                                                {{ final|number_format(2, '.', ',') }}
+                                            {% else %}
+                                                <span class="text-gray-400">&mdash;</span>
+                                            {% endif %}
+                                        </td>
+
+                                        {# STATUS DISPLAY #}
+                                        <td class="text-center px-6 py-4">
+                                            {% if grade %}
+                                                {% if grade.isFinalized() %}
+                                                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full">
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                        Finalisé
+                                                    </span>
+                                                {% elseif grade.isCcApproved() %}
+                                                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded-full">
+                                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                                        CC Approuvé
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
+                                                        Brouillon
+                                                    </span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-gray-400 text-xs">Aucune note</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-8 text-gray-500">
+                                            Aucun étudiant trouvé dans cette classe.
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
+                        <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition {% if not isCurrentYear %}opacity-50 cursor-not-allowed disabled{% endif %}">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                            </svg>
+                            Enregistrer
+                        </button>
+
+                        {% if isCurrentYear and allCcFilled %}
+                            <button type="button" id="approve-cc" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition">
+                                <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                Approuver CC
+                            </button>
+                        {% endif %}
+
+                        {% if isCurrentYear and allExamFilled %}
+                            <button type="button" id="approve-final" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition">
+                                <svg class="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                                Finalize Exam
+                            </button>
+                        {% endif %}
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            if (typeof jQuery === 'undefined') { console.error('jQuery missing in teacher/grading'); return; }
+            jQuery(function($){
+                const $form = $('form');
+                if (!$form.length) return;
+
+                $form.on('submit', function(e){
+                    e.preventDefault();
+
+                    // Serialize form data
+                    const formData = $form.serialize();
+
+                    $.ajax({
+                        url: '{{ path('app_teacher_grade', {'id': assignment.id}) }}',
+                        type: 'POST',
+                        data: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        dataType: 'json',
+                        success: function(data){
+                            if (data.status === 'ok' && data.data) {
+                                $.each(data.data, function(sid, obj){
+                                    const $cell = $('[data-final-cell="' + sid + '"]');
+                                    const val = obj.final;
+                                    if ($cell.length) {
+                                        $cell.html((val === null) ? '<span class="text-gray-400">&mdash;</span>' : parseFloat(val).toFixed(2));
+                                    }
+                                });
+
+                                // show a small success indicator
+                                const $toast = $('<div class="mb-4 bg-green-50 border border-green-200 rounded-2xl px-6 py-4"><p class="text-sm text-green-800"><svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> Notes enregistrées.</p></div>');
+                                $form.before($toast);
+                                setTimeout(function(){ $toast.fadeOut(200, function() { $(this).remove(); }); }, 2500);
+                            } else {
+                                alert('Erreur lors de l\'enregistrement.');
+                            }
+                        },
+                        error: function(err){
+                            console.error(err);
+                            alert('Erreur réseau lors de l\'enregistrement.');
+                        }
+                    });
+                });
+
+                // Approve CC
+                $('#approve-cc').on('click', function(){
+                    if (!confirm('Approuver les Notes CC pour cette classe ?')) return;
+                    $.ajax({
+                        url: '{{ path('app_teacher_approve_cc', {'id': assignment.id}) }}',
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function(resp){
+                            if (resp.status === 'ok') {
+                                // lock CC inputs, enable exam inputs
+                                $('input[name^="cc["]').prop('readonly', true);
+                                $('input[name^="exam["]').prop('disabled', false);
+                                const $toast = $('<div class="mb-4 bg-blue-50 border border-blue-200 rounded-2xl px-6 py-4"><p class="text-sm text-blue-800"><svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> CC approuvés. Vous pouvez maintenant entrer les notes d\'examen.</p></div>');
+                                $form.before($toast);
+                                setTimeout(function(){ $toast.fadeOut(200, function() { $(this).remove(); }); }, 3000);
+                                $('#approve-cc').fadeOut(200, function() { $(this).remove(); });
+                            } else {
+                                alert(resp.message || 'Erreur lors de l\'approbation CC.');
+                            }
+                        },
+                        error: function(xhr){
+                            alert('Erreur: ' + (xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'serveur')); 
+                        }
+                    });
+                });
+
+                // Approve Final
+                $('#approve-final').on('click', function(){
+                    if (!confirm('Approuver définitivement les notes (Exam) ? Cela verrouillera toutes les notes.')) return;
+                    $.ajax({
+                        url: '{{ path('app_teacher_approve_final', {'id': assignment.id}) }}',
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function(resp){
+                            if (resp.status === 'ok') {
+                                // lock everything
+                                $('input[name^="cc["]').prop('readonly', true);
+                                $('input[name^="exam["]').prop('readonly', true).prop('disabled', false);
+                                const $toast = $('<div class="mb-4 bg-green-50 border border-green-200 rounded-2xl px-6 py-4"><p class="text-sm text-green-800"><svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg> Notes finalisées. Le document peut maintenant être exporté en PDF.</p></div>');
+                                $form.before($toast);
+                                setTimeout(function(){ $toast.fadeOut(200, function() { $(this).remove(); }); }, 3000);
+                                $('#approve-final').fadeOut(200, function() { $(this).remove(); });
+                                $('#approve-cc').fadeOut(200, function() { $(this).remove(); });
+                                $form.find('button[type="submit"]').prop('disabled', true).fadeOut();
+                                
+                                // Update status badges
+                                $('tr').each(function() {
+                                    const $statusCell = $(this).find('td:last-child');
+                                    if ($statusCell.find('[class*="slate-100"]').length) {
+                                        $statusCell.html('<span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-full"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>Finalisé</span>');
+                                    }
+                                });
+                            } else {
+                                alert(resp.message || 'Erreur lors de l\'approbation finale.');
+                            }
+                        },
+                        error: function(xhr){
+                            alert('Erreur: ' + (xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'serveur')); 
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
+    {% include 'components/sidebar_close.html.twig' %}
+{% endblock %}

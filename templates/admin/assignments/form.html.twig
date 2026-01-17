@@ -1,0 +1,138 @@
+{% extends "base.html.twig" %}
+
+{% block title %}{% if edit %}Éditer{% else %}Créer{% endif %} Affectation{% endblock %}
+
+{% block body %}
+    {% include 'components/sidebar.html.twig' %}
+
+    <main class="min-h-screen p-8 bg-white">
+        <div class="max-w-2xl mx-auto">
+            <a href="{{ path('app_admin_assignments') }}" class="text-indigo-600 hover:text-indigo-700 font-medium text-sm mb-6 inline-flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Retour aux affectations
+            </a>
+
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900">{% if edit %}Éditer Affectation{% else %}Créer Affectation{% endif %}</h1>
+                <p class="text-gray-500 text-sm mt-2">Assignez un enseignant à une classe et un module</p>
+            </header>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+                <form method="post" class="space-y-6">
+                    <!-- Teacher -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Enseignant *</label>
+                        <select name="teacher" id="teacher-select" required
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="" data-specialty="">-- Sélectionnez un enseignant --</option>
+                            {% for teacher in teachers %}
+                                <option value="{{ teacher.id }}" data-specialty="{{ teacher.specialty }}" {% if assignment and assignment.teacher.id == teacher.id %}selected{% endif %}>
+                                    {{ teacher.firstName }} {{ teacher.lastName }} {% if teacher.specialty %}({{ teacher.specialty }}){% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                         <p class="text-xs text-gray-500 mt-1">La sélection filtrera automatiquement les modules et classes par spécialité.</p>
+                    </div>
+
+                    <!-- Class -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Classe *</label>
+                        <select name="class" id="class-select" required
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="" data-filiere="">-- Sélectionnez une classe --</option>
+                            {% for classe in classes %}
+                                <option value="{{ classe.id }}" data-filiere="{{ classe.filiere.code }}" {% if assignment and assignment.associatedClass.id == classe.id %}selected{% endif %}>
+                                    {{ classe.name }} ({{ classe.filiere.code }} - {{ classe.level }}A)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Module -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900 mb-2">Module *</label>
+                        <select name="module" id="module-select" required
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="" data-filiere="">-- Sélectionnez un module --</option>
+                            {% for module in modules %}
+                                <option value="{{ module.id }}" data-filiere="{{ module.filiere.code }}" {% if assignment and assignment.module.id == module.id %}selected{% endif %}>
+                                    {{ module.name }} ({{ module.filiere.code }} - S{{ module.semester }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex gap-4 pt-6 border-t border-slate-100">
+                        <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-bold">
+                            {% if edit %}Enregistrer Modifications{% else %}Créer Affectation{% endif %}
+                        </button>
+                        <a href="{{ path('app_admin_assignments') }}" class="px-6 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition font-medium">
+                            Annuler
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    {% include 'components/sidebar_close.html.twig' %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const teacherSelect = document.getElementById('teacher-select');
+            const classSelect = document.getElementById('class-select');
+            const moduleSelect = document.getElementById('module-select');
+            
+            // Store original options
+            const allClassOptions = Array.from(classSelect.options).slice(1); // Skip placeholder
+            const allModuleOptions = Array.from(moduleSelect.options).slice(1);
+
+            function filterOptions() {
+                const selectedOption = teacherSelect.options[teacherSelect.selectedIndex];
+                const specialty = selectedOption.dataset.specialty;
+
+                // Reset
+                classSelect.value = "";
+                moduleSelect.value = "";
+                
+                // Clear current options (keep placeholder)
+                while (classSelect.options.length > 1) classSelect.remove(1);
+                while (moduleSelect.options.length > 1) moduleSelect.remove(1);
+
+                // Filter and add back info
+                allClassOptions.forEach(opt => {
+                    if (!specialty || opt.dataset.filiere === specialty) {
+                        classSelect.add(opt.cloneNode(true));
+                    }
+                });
+                
+                allModuleOptions.forEach(opt => {
+                     if (!specialty || opt.dataset.filiere === specialty) {
+                        moduleSelect.add(opt.cloneNode(true));
+                    }
+                });
+                
+                // If editing, try to restore selected value if valid in new set
+                // (Logic handled by server rendering 'selected' attribute, 
+                // but re-filtering might kill it if we completely remove/add nodes without checking.
+                // However, simplistic remove/add is cleaner than toggling hidden which not all browsers support on Options)
+                // Better approach: toggle 'hidden' or 'disabled' attribute, but Safari/some browsers ignore hidden on options.
+                // Cloning is safer. To preserve editing state: we ran this on DOMContentLoaded?
+                // No, we only run on change. on DOMContentLoaded we should run it?
+                // If we run on load, we might lose the 'selected' attribute if we clone/remove.
+                // We should only filter if user CHANGES the teacher. 
+                // BUT if we edit an assignment, the teacher is already selected, so we should filter to show relevant ONLY?
+                // Or show all but highlight?
+                // Requests logic: "When assigning a teacher... filter".
+                // Let's run it on change. On load, we leave as is (full list or server filtered? Server didn't filter).
+                // Actually, if we edit, we probably want to see the current one.
+                // Let's run logic only on 'change'.
+            }
+
+            teacherSelect.addEventListener('change', filterOptions);
+        });
+    </script>
+{% endblock %}
