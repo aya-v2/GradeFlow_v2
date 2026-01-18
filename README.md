@@ -1,4 +1,4 @@
-<img src="assets/logo-o.png" alt="GradeFlow Logo" width="200">
+<img src="assets/logo-o.png" alt="GradeFlow Logo" width="300">
 <br/>
 
 ![PHP](https://badgen.net/badge/PHP/8.2/777BB4)
