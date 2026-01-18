@@ -1,5 +1,5 @@
 <img src="assets/logo-o.png" alt="GradeFlow Logo" width="200">
-<br/> <br/>
+<br/>
 
 ![PHP](https://badgen.net/badge/PHP/8.2/777BB4)
 ![Symfony](https://badgen.net/badge/Symfony/7.0/000000)
